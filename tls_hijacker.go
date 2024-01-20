@@ -22,7 +22,7 @@ func getTLSHijackFunc(hj hijackers.Hijacker) func(*http.Request, net.Conn, *gopr
 			_ = tlsConnR.Close()
 		}
 
-		tlsConnL, tlsConnR, err := hj.GetConns(req.URL, connL, ctx)
+		tlsConnL, tlsConnR, err := hj.GetConns(req, connL, ctx)
 		if err != nil {
 			ctx.Warnf("Couldn't connect: %v", err)
 			return

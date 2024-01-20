@@ -7,6 +7,7 @@ import (
 	utls "github.com/refraction-networking/utls"
 	"io"
 	"net"
+	"net/http"
 	"net/url"
 )
 
@@ -37,7 +38,7 @@ func NewUTLSHijacker(
 	}
 }
 
-func (h *utlsHijacker) GetConns(target *url.URL, clientRaw net.Conn, ctxLogger Logger) (net.Conn, net.Conn, error) {
+func (h *utlsHijacker) GetConns(target *http.Request, clientRaw net.Conn, ctxLogger Logger) (net.Conn, net.Conn, error) {
 	var remoteConn net.Conn
 
 	clientConnOrig, clientConnCopy := utils.NewTeeConn(clientRaw)
@@ -49,9 +50,9 @@ func (h *utlsHijacker) GetConns(target *url.URL, clientRaw net.Conn, ctxLogger L
 		log:   ctxLogger,
 	}
 	clientConfigTemplate := h.clientTLSConfig.Clone()
-	clientConfigTemplate.GetConfigForClient = h.clientHelloCallback(target, clientConfigTemplate, &remoteConn, f, ctxLogger)
+	clientConfigTemplate.GetConfigForClient = h.clientHelloCallback(target.URL, clientConfigTemplate, &remoteConn, f, ctxLogger)
 	plaintextConn := tls.Server(clientConnOrig, clientConfigTemplate)
-	_, err := clientConnOrig.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	_, err := clientConnOrig.Write([]byte(fmt.Sprintf("%s 200 OK\r\n\r\n", target.Proto)))
 	if err != nil {
 		return nil, nil, err
 	}

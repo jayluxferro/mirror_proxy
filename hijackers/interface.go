@@ -2,7 +2,7 @@ package hijackers
 
 import (
 	"net"
-	"net/url"
+	"net/http"
 )
 
 // Hijacker operation modes
@@ -16,7 +16,7 @@ type Hijacker interface {
 	// GetConns creates server connection and optionally wraps clientRaw into client.
 	// Returned streams are meant to be connected to each other.
 	// Implementation MUST answer to client "HTTP/1.1 200 OK\r\n\r\n"
-	GetConns(url *url.URL, clientRaw net.Conn, ctxLogger Logger) (client, server net.Conn, err error)
+	GetConns(url *http.Request, clientRaw net.Conn, ctxLogger Logger) (client, server net.Conn, err error)
 }
 
 type Logger interface {

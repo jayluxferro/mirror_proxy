@@ -1,8 +1,9 @@
 package hijackers
 
 import (
+	"fmt"
 	"net"
-	"net/url"
+	"net/http"
 )
 
 type passThroughHijacker struct {
@@ -15,11 +16,11 @@ func NewPassThroughHijacker(dialer Dialer) Hijacker {
 	}
 }
 
-func (h *passThroughHijacker) GetConns(url *url.URL, clientRaw net.Conn, _ Logger) (net.Conn, net.Conn, error) {
+func (h *passThroughHijacker) GetConns(url *http.Request, clientRaw net.Conn, _ Logger) (net.Conn, net.Conn, error) {
 	remoteConn, err := h.dialer.Dial("tcp", url.Host)
 	if err != nil {
 		return nil, nil, err
 	}
-	_, err = clientRaw.Write([]byte("HTTP/1.0 200 OK\r\n\r\n"))
+	_, err = clientRaw.Write([]byte(fmt.Sprintf("%s 200 OK\r\n\r\n", url.Proto)))
 	return clientRaw, remoteConn, err
 }
