@@ -42,18 +42,8 @@ func main() {
 	hj := hjf.Get(opts.Mode)
 
 	p := goproxy.NewProxyHttpServer()
-
-	// Handle HTTP CONNECT requests
-	p.OnRequest(goproxy.UrlMatches(regexp.MustCompile("^http://"))).DoFunc(
-		func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
-			// Return r, nil to continue with the default proxy behavior
-			// which forwards the request to its destination
-			return r, nil
-		},
-	)
-
-	// Handle HTTPS CONNECT requests
-	p.OnRequest(goproxy.UrlMatches(regexp.MustCompile("^https://"))).
+	// Handle all CONNECT requests
+	p.OnRequest(goproxy.ReqHostMatches(regexp.MustCompile("^.*$"))).
 		HandleConnect(goproxy.FuncHttpsHandler(
 			func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
 				return &goproxy.ConnectAction{
@@ -61,7 +51,6 @@ func main() {
 					Hijack: getTLSHijackFunc(hj),
 				}, host
 			}))
-
 	p.Verbose = opts.Verbose
 
 	if opts.PprofAddress != "" {
